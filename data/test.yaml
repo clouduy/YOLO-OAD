@@ -1,0 +1,15 @@
+path: E:\yolov5-SPPF\test66666
+train: E:\yolov5-SPPF\test66666\images
+val: E:\yolov5-SPPF\test66666\images
+test: # test images (optional)
+
+# Classes
+names:
+  0: wandou
+  1: yangguang
+  2: douzi
+  3: jiangshi
+  4: xiangrikui
+  5: tudou
+  6: bingwandou
+  7: bingdou

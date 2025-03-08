@@ -1,0 +1,19 @@
+path: /home/lvyong/bdd100k
+train:
+  - images/100k/train
+val:
+  - images/100k/val
+test:
+  - images/100k/val
+
+# Classes
+names:
+  0: person
+  1: rider
+  2: car
+  3: bus
+  4: truck
+  5: bike
+  6: motor
+  7: traffic light
+  8: traffic sign

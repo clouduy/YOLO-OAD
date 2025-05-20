@@ -1171,7 +1171,7 @@ class Conv_DCNv4(nn.Module):
         return x
 #######################################end########################################################
 
-from timm.layers import DropPath
+from timm.models.layers import DropPath
 
 # CVPR2024 PKINet
 class CAA(nn.Module):
@@ -1298,7 +1298,7 @@ class C3_Star_CAA2(C3):
         c_ = int(c2 * e)  # hidden channels
         self.m = nn.Sequential(*(Star_Block_CAA2(c_) for _ in range(n)))
 
-from timm.layers import DropPath
+from timm.models.layers import DropPath
 
 class SimAM(torch.nn.Module):
     def __init__(self, e_lambda=1e-4):

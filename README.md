@@ -34,7 +34,7 @@ YOLO-OAD integrates the following key innovations:
 
 - Python 3.10+
 - PyTorch 2.0+
-- CUDA 11.0+ (for GPU acceleration)
+- CUDA 11.8+ (for GPU acceleration)
 - NVIDIA GPU with ≥8GB VRAM recommended
 
 ### Install Dependencies
@@ -59,6 +59,8 @@ python verify_installation.py
 
 ### Data Preparation
 
+Important Note for BDD100K Dataset: Please remove the 'train' class from the BDD100K dataset before use, as it is not a standard object category for autonomous driving detection tasks.
+
 Organize your dataset in YOLO format:
 
 ```
@@ -75,18 +77,21 @@ Create `data.yaml` configuration:
 
 ```yaml
 # Dataset configuration
-path: /path/to/dataset
+path: /path/to/BDD100K
 train: images/train
 val: images/val
 
 # Class names
 names:
-  0: car
-  1: person
-  2: traffic_light
-  3: traffic_sign
-  # ... other classes
-```
+  0: person
+  1: rider
+  2: car
+  3: bus
+  4: truck
+  5: bike
+  6: motor
+  7: traffic light
+  8: traffic_sign
 
 ### Training
 
@@ -95,7 +100,7 @@ names:
 python train.py \
   --data data/BDD100K.yaml \
   --cfg models/YOLO-OAD.yaml \
-  --weights yolov5n.pt \
+  --weights YOLO-OAD pre-trained.pt \
   --batch-size 16 \
   --epochs 300 \
   --img-size 640
@@ -106,7 +111,7 @@ python train.py \
 python train.py \
   --data data/BDD100K.yaml \
   --cfg models/YOLO-OAD.yaml \
-  --weights yolov5n.pt \
+  --weights YOLO-OAD pre-trained.pt \
   --batch-size 32 \
   --epochs 300 \
   --img-size 640 \
@@ -126,7 +131,7 @@ python train.py \
 ```bash
 python val.py \
   --data data/BDD100K.yaml \
-  --weights runs/train/yoload_exp1/weights/best.pt \
+  --weights runs/train/exp1/weights/best.pt \
   --batch-size 32 \
   --task val \
   --verbose
@@ -137,7 +142,7 @@ python val.py \
 #### Image Detection
 ```bash
 python detect.py \
-  --weights runs/train/yoload_exp1/weights/best.pt \
+  --weights runs/train/exp1/weights/best.pt \
   --source data/images/ \
   --conf-thres 0.25 \
   --iou-thres 0.45 \
@@ -186,8 +191,8 @@ python export.py \
 
 | Model | Dataset | mAP@0.5 | mAP@0.5-0.95 | Params | FPS | Download |
 |-------|---------|---------|--------------|--------|-----|----------|
-| YOLO-OAD | VOC | 81.8 | 59.4 | 2.62M | 126 | [Link]() |
-| YOLO-OAD | BDD100K | 52.5 | 28.3 | 2.62M | 126 | [Link]() |
+| YOLO-OAD | VOC | 81.8 | 59.4 | 2.62M | 126 | [Link](http://host.robots.ox.ac.uk/pascal/VOC/) |
+| YOLO-OAD | BDD100K | 52.5 | 28.3 | 2.62M | 126 | [Link](https://bair.berkeley.edu/blog/2018/05/30/bdd/) |
 
 ## Citation
 

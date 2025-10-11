@@ -14,10 +14,6 @@ import platform
 import sys
 from copy import deepcopy
 from pathlib import Path
-
-from ultralytics.nn.modules import SPPELAN
-
-from models.mobilenetv4block import C3_UIB
 import torch
 import torch.nn as nn
 
@@ -202,7 +198,7 @@ class BaseModel(nn.Module):
         # Apply to(), cpu(), cuda(), half() to model tensors that are not parameters or registered buffers
         self = super()._apply(fn)
         m = self.model[-1]  # Detect()
-        if isinstance(m, (Detect, Segment)) or isinstance(m, LADHDetect):
+        if isinstance(m, (Detect, Segment)) or isinstance(m, DLADH):
             m.stride = fn(m.stride)
             m.grid = list(map(fn, m.grid))
             if isinstance(m.anchor_grid, list):
@@ -254,7 +250,7 @@ class DetectionModel(BaseModel):
             self.stride = m.stride
             self._initialize_biases()  # only run once
 
-        if isinstance(m, LADHDetect):
+        if isinstance(m, DLADH):
             s = 256  # 2x min stride
             m.inplace = self.inplace
 
@@ -421,7 +417,6 @@ def parse_model(d, ch):
             GhostBottleneck,
             SPP,
             SPPF,
-            SPPELAN,
             DWConv,
             MixConv2d,
             Focus,
@@ -434,19 +429,16 @@ def parse_model(d, ch):
             nn.ConvTranspose2d,
             DWConvTranspose2d,
             C3x,
-            C3_UIB,
             Conv_DCNv4,
-            C3_Star1,
-            C3_Star_CAA1,
-            C3_Star2,
-            C3_Star_CAA2,
+            C3LKSCAA,
+            C3VGGAM,
         }:
             c1, c2 = ch[f], args[0]
             if c2 != no:  # if not output
                 c2 = make_divisible(c2 * gw, ch_mul)
 
             args = [c1, c2, *args[1:]]
-            if m in {BottleneckCSP, C3, C3TR, C3Ghost, C3x,C3_Star1,C3_Star_CAA1,C3_Star2,C3_Star_CAA2}:
+            if m in {BottleneckCSP, C3, C3TR, C3Ghost, C3x,C3LKSCAA,C3VGGAM}:
                 args.insert(2, n)  # number of repeats
                 n = 1
         elif m is nn.BatchNorm2d:
@@ -472,7 +464,7 @@ def parse_model(d, ch):
             if m is Segment:
                 args[3] = make_divisible(args[3] * gw, 8)
 
-        elif m is LADHDetect:
+        elif m is DLADH:
             args.append([ch[x] for x in f])
             if isinstance(args[1], int):  # number of anchors
                 args[1] = [list(range(args[1] * 2))] * len(f)

@@ -1109,7 +1109,7 @@ class Classify(nn.Module):
             x = torch.cat(x, 1)
         return self.linear(self.drop(self.pool(self.conv(x)).flatten(1)))
 
-##################C3DCNv4################################
+##################DCNv4################################
 
 
 import torch
@@ -1190,7 +1190,7 @@ class CAA(nn.Module):
         return attn_factor * x
 
 
-class Star_Block1(nn.Module):
+class Star_Block(nn.Module):
     def __init__(self, dim, mlp_ratio=3, drop_path=0.):
         super().__init__()
         self.dwconv = Conv(dim, dim, 7, g=dim, act=False)
@@ -1210,29 +1210,8 @@ class Star_Block1(nn.Module):
         x = input + self.drop_path(x)
         return x
 
-class Star_Block2(nn.Module):
-    def __init__(self, dim, mlp_ratio=3, drop_path=0.):
-        super().__init__()
-        self.dwconv = Conv(dim, dim, 3, g=dim, act=False)
-        self.f1 = nn.Conv2d(dim, mlp_ratio * dim, 1)
-        self.f2 = nn.Conv2d(dim, mlp_ratio * dim, 1)
-        self.g = Conv(mlp_ratio * dim, dim, 1, act=False)
-        self.dwconv2 = nn.Conv2d(dim, dim, 3, 1, (3 - 1) // 2, groups=dim)
-        self.act = nn.ReLU6()
-        self.drop_path = DropPath(drop_path) if drop_path > 0. else nn.Identity()
 
-    def forward(self, x):
-        input = x
-        x = self.dwconv(x)
-        x1, x2 = self.f1(x), self.f2(x)
-        x = self.act(x1) * x2
-        x = self.dwconv2(self.g(x))
-        x = input + self.drop_path(x)
-        return x
-
-
-
-class Star_Block_CAA1(Star_Block1):
+class LKS_BLOCK(Star_Block):
     def __init__(self, dim, mlp_ratio=3, drop_path=0):
         super().__init__(dim, mlp_ratio, drop_path)
 
@@ -1247,56 +1226,13 @@ class Star_Block_CAA1(Star_Block1):
         x = input + self.drop_path(x)
         return x
 
-class Star_Block_CAA2(Star_Block2):
-    def __init__(self, dim, mlp_ratio=3, drop_path=0):
-        super().__init__(dim, mlp_ratio, drop_path)
 
-        self.attention = CAA(mlp_ratio * dim)
-
-    def forward(self, x):
-        input = x
-        x = self.dwconv(x)
-        x1, x2 = self.f1(x), self.f2(x)
-        x = self.act(x1) * x2
-        x = self.dwconv2(self.g(self.attention(x)))
-        x = input + self.drop_path(x)
-        return x
-
-class C3_Star1(C3):
-    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, e_lambda=1e-4):
-        super().__init__(c1, c2, n, shortcut, g, e)
-        c_ = int(c2 * e)  # hidden channels
-        # 添加 SimAM 注意力机制
-        self.simam = SimAM(e_lambda=e_lambda)
-        self.m = nn.Sequential(*(Star_Block1(c_) for _ in range(n)))
-
-    def forward(self, x):
-        # 应用 C3_Star1 的前向传播
-        return super().forward(x)
-
-class C3_Star_CAA1(C3):
+class C3LKSCAA(C3):
     def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
         super().__init__(c1, c2, n, shortcut, g, e)
         c_ = int(c2 * e)  # hidden channels
-        self.m = nn.Sequential(*(Star_Block_CAA1(c_) for _ in range(n)))
+        self.m = nn.Sequential(*(LKS_BLOCK(c_) for _ in range(n)))
 
-class C3_Star2(C3):
-    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5, e_lambda=1e-4):
-        super().__init__(c1, c2, n, shortcut, g, e)
-        c_ = int(c2 * e)  # hidden channels
-        # 添加 SimAM 注意力机制
-        self.simam = SimAM(e_lambda=e_lambda)
-        self.m = nn.Sequential(*(Star_Block2(c_) for _ in range(n)))
-    def forward(self, x):
-        # 应用 C3_Star1 的前向传播
-        return super().forward(x)
-
-
-class C3_Star_CAA2(C3):
-    def __init__(self, c1, c2, n=1, shortcut=False, g=1, e=0.5):
-        super().__init__(c1, c2, n, shortcut, g, e)
-        c_ = int(c2 * e)  # hidden channels
-        self.m = nn.Sequential(*(Star_Block_CAA2(c_) for _ in range(n)))
 
 from timm.models.layers import DropPath
 
@@ -1371,8 +1307,8 @@ class LADH(nn.Module):
 
         out = torch.cat([x21, x22, x1], 1)
         return out
-# LADHDetect类保持不变
-class LADHDetect(nn.Module):
+# DLADH类保持不变
+class DLADH(nn.Module):
     stride = None
     onnx_dynamic = False
     export = False
@@ -1427,7 +1363,7 @@ class LADHDetect(nn.Module):
         return grid, anchor_grid
 
 
-class Bottleneck(nn.Module):
+class VGGAM_Block(nn.Module):
     """A bottleneck layer with optional shortcut and group convolution for efficient feature extraction."""
 
     def __init__(self, c1, c2, shortcut=True, g=1, k=(3, 3), e=0.5):
@@ -1447,3 +1383,20 @@ class Bottleneck(nn.Module):
             x += identity
         return x
 
+class C3VGGAM(nn.Module):
+    """Implements a CSP Bottleneck module with three convolutions for enhanced feature extraction in neural networks."""
+
+    def __init__(self, c1, c2, n=1, shortcut=True, g=1, e=0.5):
+        """Initializes C3 module with options for channel count, bottleneck repetition, shortcut usage, group
+        convolutions, and expansion.
+        """
+        super().__init__()
+        c_ = int(c2 * e)  # hidden channels
+        self.cv1 = Conv(c1, c_, 1, 1)
+        self.cv2 = Conv(c1, c_, 1, 1)
+        self.cv3 = Conv(2 * c_, c2, 1)  # optional act=FReLU(c2)
+        self.m = nn.Sequential(*(VGGAM_Block(c_, c_, shortcut, g, e=1.0) for _ in range(n)))
+
+    def forward(self, x):
+        """Performs forward propagation using concatenated outputs from two convolutions and a Bottleneck sequence."""
+        return self.cv3(torch.cat((self.m(self.cv1(x)), self.cv2(x)), 1))

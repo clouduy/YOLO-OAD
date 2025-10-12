@@ -139,7 +139,7 @@ names:
 python train.py \
   --data data/BDD100K.yaml \
   --cfg models/YOLO-OAD.yaml \
-  --weights yolov5n.pt \
+  --weights YOLO-OAD pre-trained.pt \
   --batch-size 16 \
   --epochs 300 \
   --img-size 640
@@ -150,7 +150,7 @@ python train.py \
 python train.py \
   --data data/BDD100K.yaml \
   --cfg models/YOLO-OAD.yaml \
-  --weights yolov5n.pt \
+  --weights YOLO-OAD pre-trained.pt \
   --batch-size 32 \
   --epochs 300 \
   --img-size 640 \

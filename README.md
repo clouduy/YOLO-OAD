@@ -32,16 +32,58 @@ YOLO-OAD integrates the following key innovations:
 
 ### Prerequisites
 
-- Python 3.10+
-- PyTorch 2.0+
-- CUDA 11.8+ (for GPU acceleration)
-- NVIDIA GPU with ≥8GB VRAM recommended
+- **Python 3.10+**
+- **PyTorch 2.0+**
+- **CUDA 11.0+** (for GPU acceleration)
+- **NVIDIA GPU with ≥8GB VRAM** recommended
+
+### 🚨 Important Environment Setup Notes
+
+#### Step 1: Install Anaconda (Recommended)
+We strongly recommend using **Anaconda** to manage your Python environment. This prevents package conflicts and makes dependency management much easier.
+
+Download Anaconda from: https://www.anaconda.com/download
+
+#### Step 2: Check Your CUDA Version
+**CRITICAL**: The CUDA version in your virtual environment MUST match the CUDA Toolkit version installed on your operating system.
+
+**Check your system CUDA version:**
+```bash
+nvcc --version
+```
+
+If you don't have CUDA installed, download from:
+- Official: https://developer.nvidia.com/cuda-downloads
+- **For users in China**: Use domestic mirrors for faster download
+
+**Author's Environment**: CUDA 11.8 + PyTorch 2.0 + Python 3.10
+
+#### Step 3: Create Conda Environment
+```bash
+# Create a new environment
+conda create -n yoload python=3.10
+
+# Activate the environment
+conda activate yoload
+```
+
+#### Step 4: Install PyTorch with Correct CUDA Version
+```bash
+# For CUDA 11.8 (author's version)
+pip install torch==2.0.0 torchvision==0.15.1 torchaudio==2.0.1 --index-url https://download.pytorch.org/whl/cu118
+
+# For users in China, use Tsinghua mirror:
+pip install torch==2.0.0 torchvision==0.15.1 torchaudio==2.0.1 -i https://pypi.tuna.tsinghua.edu.cn/simple
+```
 
 ### Install Dependencies
 
 ```bash
-# Install base requirements
-pip install -r requirements.txt
+# Install base requirements (using domestic mirror for Chinese users)
+pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+# If you encounter network issues, try:
+pip install -r requirements.txt -i https://pypi.douban.com/simple/
 
 # Install DCNv4 operator
 cd DCNv4_op
@@ -59,8 +101,6 @@ python verify_installation.py
 
 ### Data Preparation
 
-Important Note for BDD100K Dataset: Please remove the 'train' class from the BDD100K dataset before use, as it is not a standard object category for autonomous driving detection tasks.
-
 Organize your dataset in YOLO format:
 
 ```
@@ -73,25 +113,24 @@ dataset/
     └── val/
 ```
 
+**Important Note for BDD100K Dataset**: Please remove the 'train' class from the BDD100K dataset before use, as it is not a standard object category for autonomous driving detection tasks.
+
 Create `data.yaml` configuration:
 
 ```yaml
 # Dataset configuration
-path: /path/to/BDD100K
+path: /path/to/dataset
 train: images/train
 val: images/val
 
 # Class names
 names:
-  0: person
-  1: rider
-  2: car
-  3: bus
-  4: truck
-  5: bike
-  6: motor
-  7: traffic light
-  8: traffic_sign
+  0: car
+  1: person
+  2: traffic_light
+  3: traffic_sign
+  # ... other classes (excluding 'train' class)
+```
 
 ### Training
 
@@ -100,7 +139,7 @@ names:
 python train.py \
   --data data/BDD100K.yaml \
   --cfg models/YOLO-OAD.yaml \
-  --weights YOLO-OAD pre-trained.pt \
+  --weights yolov5n.pt \
   --batch-size 16 \
   --epochs 300 \
   --img-size 640
@@ -111,7 +150,7 @@ python train.py \
 python train.py \
   --data data/BDD100K.yaml \
   --cfg models/YOLO-OAD.yaml \
-  --weights YOLO-OAD pre-trained.pt \
+  --weights yolov5n.pt \
   --batch-size 32 \
   --epochs 300 \
   --img-size 640 \
@@ -131,7 +170,7 @@ python train.py \
 ```bash
 python val.py \
   --data data/BDD100K.yaml \
-  --weights runs/train/exp1/weights/best.pt \
+  --weights runs/train/yoload_exp1/weights/best.pt \
   --batch-size 32 \
   --task val \
   --verbose
@@ -142,7 +181,7 @@ python val.py \
 #### Image Detection
 ```bash
 python detect.py \
-  --weights runs/train/exp1/weights/best.pt \
+  --weights runs/train/yoload_exp1/weights/best.pt \
   --source data/images/ \
   --conf-thres 0.25 \
   --iou-thres 0.45 \
@@ -193,6 +232,62 @@ python export.py \
 |-------|---------|---------|--------------|--------|-----|----------|
 | YOLO-OAD | VOC | 81.8 | 59.4 | 2.62M | 126 | [Link](http://host.robots.ox.ac.uk/pascal/VOC/) |
 | YOLO-OAD | BDD100K | 52.5 | 28.3 | 2.62M | 126 | [Link](https://bair.berkeley.edu/blog/2018/05/30/bdd/) |
+
+## ❓ Frequently Asked Questions (FAQ)
+
+### 🐢 **Why is training so slow on CPU?**
+**Answer**: Deep learning models like YOLO-OAD require massive parallel computations that GPUs are specifically designed for. 
+- CPU training can be **10-50x slower** than GPU training
+- **Solution**: Use an NVIDIA GPU with CUDA support for reasonable training times
+
+### 🌐 **Why can't I download packages?**
+**Answer**: This is usually a network issue, especially for users in China.
+- **Solution 1**: Use domestic mirrors:
+  ```bash
+  # Tsinghua mirror
+  pip install [package] -i https://pypi.tuna.tsinghua.edu.cn/simple
+  
+  # Douban mirror  
+  pip install [package] -i https://pypi.douban.com/simple/
+  ```
+- **Solution 2**: Set permanent mirror source:
+  ```bash
+  pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
+  ```
+
+### 📁 **Why can't I open the dataset link?**
+**Answer**: Dataset servers might be temporarily unavailable or blocked in some regions.
+- **Solution 1**: Try using a VPN
+- **Solution 2**: Search for alternative download links or mirrors
+- **Solution 3**: Contact the dataset providers directly
+
+### 🔧 **CUDA version mismatch error**
+**Answer**: This happens when PyTorch CUDA version doesn't match your system CUDA.
+- **Check system CUDA**: `nvcc --version`
+- **Check PyTorch CUDA**: 
+  ```python
+  import torch
+  print(torch.version.cuda)
+  ```
+- **Solution**: Reinstall PyTorch with correct CUDA version from https://pytorch.org
+
+### 💾 **Out of memory error**
+**Answer**: Your GPU doesn't have enough VRAM for the batch size.
+- **Solution**: Reduce batch size (--batch-size 8 or lower)
+- Close other GPU applications during training
+- Use smaller image size (--img-size 416)
+
+### 📊 **Training loss is NaN**
+**Answer**: This indicates numerical instability.
+- **Solution**: Reduce learning rate (--lr 0.001)
+- Check your dataset for corrupted images or labels
+- Ensure your data normalization is correct
+
+### 🔍 **Model not detecting anything**
+**Answer**: Common issues with new datasets.
+- **Solution**: Check your class names match between dataset and configuration
+- Verify your labels are in correct YOLO format
+- Start with pre-trained weights, not from scratch
 
 ## Citation
 

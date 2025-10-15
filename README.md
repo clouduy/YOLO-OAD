@@ -1,5 +1,21 @@
 # YOLO-OAD: A Deformable Lightweight Asymmetric Decoupled Head based Object Detector for Autonomous Driving
 
+# Important Notice
+
+This repository contains the source code for the manuscript titled "A Deformable Lightweight Asymmetric Decoupled Head based Object Detector for Autonomous Driving" (Manuscript ID: 32C17942-0336-4688-9578-437A7B165C70), which has been submitted to 【Signal, Image and Video Processing】 and is currently under peer review.
+
+# PLEASE NOTE:
+
+This code and its associated content are unpublished academic work. Copyright is retained by the authors.
+
+Any form of citation, distribution, or use is strictly prohibited until the manuscript is officially accepted and published.
+
+This code is provided solely for the purpose of peer review by the reviewers of 【Signal, Image and Video Processing】.
+
+If the manuscript is accepted, this repository will be updated to its final, official open-source version.
+
+For any questions, please contact: [yusheng_c@163.com]
+
 ## Project Overview
 
 YOLO-OAD is an optimized object detection model based on YOLOv5, specifically designed for autonomous driving scenarios. It introduces several novel modules including DLADH (Deformable Lightweight Asymmetric Decoupled Head), C3LKSCAA, and C3VGGAM to enhance detection accuracy for multi-scale and occluded objects while maintaining real-time inference capabilities. The model achieves state-of-the-art performance on autonomous driving datasets while maintaining efficient computational characteristics.

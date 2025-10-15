@@ -2,7 +2,7 @@
 
 # Important Notice
 
-This repository contains the source code for the manuscript titled "A Deformable Lightweight Asymmetric Decoupled Head based Object Detector for Autonomous Driving" (Manuscript ID: 32C17942-0336-4688-9578-437A7B165C70), which has been submitted to 【Signal, Image and Video Processing】 and is currently under peer review.
+This repository contains the source code for the manuscript titled "A Deformable Lightweight Asymmetric Decoupled Head based Object Detector for Autonomous Driving" (Manuscript ID: 32C17942-0336-4688-9578-437A7B165C70), which has been submitted to 【Signal, Image and Video Processing】.
 
 # PLEASE NOTE:
 
